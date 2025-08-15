@@ -174,6 +174,40 @@ class BGAMarketingApp {
             </button>
           </div>
 
+          <!-- 自動化コントロール -->
+          <div class="bg-gray-50 p-6 rounded-lg">
+            <h3 class="text-lg font-semibold mb-4">コンテンツ自動化</h3>
+            <div class="space-y-4">
+              <div class="bg-white p-4 rounded border">
+                <h4 class="font-medium mb-2">自動生成設定</h4>
+                <div class="text-sm text-gray-600 mb-3">
+                  ・SEO記事: 月10本<br>
+                  ・プレスリリース: 月1本<br>
+                  ・採用コンテンツ: 週1本<br>
+                  ・SNSコンテンツ: 日2本
+                </div>
+                <div class="space-y-2">
+                  <button class="btn-primary w-full text-sm" onclick="bgaApp.runTestAutomation()">
+                    <i class="fas fa-play mr-2"></i>テスト実行
+                  </button>
+                  <button class="btn-secondary w-full text-sm" onclick="bgaApp.showAutomationSettings()">
+                    <i class="fas fa-cog mr-2"></i>設定変更
+                  </button>
+                </div>
+              </div>
+              
+              <div class="bg-white p-4 rounded border">
+                <h4 class="font-medium mb-2">配信スケジュール</h4>
+                <div class="text-sm text-gray-600 mb-3">
+                  毎朝7:30にダッシュボードに配信
+                </div>
+                <button class="btn-success w-full text-sm" onclick="bgaApp.runTestDelivery()">
+                  <i class="fas fa-paper-plane mr-2"></i>テスト配信
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- 統計情報 -->
           <div class="bg-gray-50 p-6 rounded-lg">
             <h3 class="text-lg font-semibold mb-4">システム統計</h3>
@@ -441,6 +475,199 @@ class BGAMarketingApp {
     if (!contents.length) return 0;
     const total = contents.reduce((sum, content) => sum + (content.quality_score || 0), 0);
     return total / contents.length;
+  }
+
+  // 自動化テスト実行
+  async runTestAutomation() {
+    if (!this.currentUser) {
+      this.showLoginForm();
+      return;
+    }
+
+    try {
+      this.showNotification('自動化テストを実行中...', 'info');
+      
+      const response = await axios.post(`${this.apiBase}/automation/run-test`);
+      
+      if (response.data.success) {
+        this.showNotification('自動化テストが完了しました', 'success');
+        this.loadDashboardContent(); // ダッシュボードを更新
+      }
+    } catch (error) {
+      console.error('Automation test error:', error);
+      this.showNotification('自動化テストに失敗しました', 'error');
+    }
+  }
+
+  // 配信テスト実行
+  async runTestDelivery() {
+    if (!this.currentUser) {
+      this.showLoginForm();
+      return;
+    }
+
+    try {
+      this.showNotification('配信テストを実行中...', 'info');
+      
+      const response = await axios.post(`${this.apiBase}/delivery/run-test`);
+      
+      if (response.data.success) {
+        this.showNotification('配信テストが完了しました', 'success');
+        await this.loadNotifications(); // 通知を更新
+      }
+    } catch (error) {
+      console.error('Delivery test error:', error);
+      this.showNotification('配信テストに失敗しました', 'error');
+    }
+  }
+
+  // 自動化設定画面表示
+  async showAutomationSettings() {
+    if (!this.currentUser) {
+      this.showLoginForm();
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${this.apiBase}/automation/schedules`);
+      const schedules = response.data.success ? response.data.data : [];
+
+      const modalHtml = `
+        <div class="modal-overlay" id="automationModal">
+          <div class="modal-content max-w-4xl">
+            <h2 class="text-2xl font-bold mb-6">コンテンツ自動化設定</h2>
+            
+            <div class="space-y-6">
+              ${schedules.map(schedule => `
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-lg font-semibold">${this.getContentTypeLabel(schedule.content_type)}</h3>
+                    <label class="inline-flex items-center">
+                      <input type="checkbox" ${schedule.is_active ? 'checked' : ''} 
+                             onchange="bgaApp.updateAutomationStatus(${schedule.id}, this.checked)"
+                             class="form-checkbox h-5 w-5 text-blue-600">
+                      <span class="ml-2 text-sm">有効</span>
+                    </label>
+                  </div>
+                  
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">頻度</label>
+                      <select class="form-select" onchange="bgaApp.updateAutomationFrequency(${schedule.id}, this.value)">
+                        <option value="daily" ${schedule.frequency === 'daily' ? 'selected' : ''}>毎日</option>
+                        <option value="weekly" ${schedule.frequency === 'weekly' ? 'selected' : ''}>毎週</option>
+                        <option value="monthly" ${schedule.frequency === 'monthly' ? 'selected' : ''}>毎月</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">生成数</label>
+                      <input type="number" value="${schedule.frequency_count}" min="1" max="50"
+                             onchange="bgaApp.updateAutomationCount(${schedule.id}, this.value)"
+                             class="form-input">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">実行時刻</label>
+                      <input type="time" value="${schedule.schedule_time}"
+                             onchange="bgaApp.updateAutomationTime(${schedule.id}, this.value)"
+                             class="form-input">
+                    </div>
+                  </div>
+                  
+                  <div class="mt-3 text-sm text-gray-600">
+                    次回実行: ${schedule.next_generation_at ? new Date(schedule.next_generation_at).toLocaleString('ja-JP') : '未設定'}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            
+            <div class="mt-8 flex space-x-4">
+              <button class="btn-primary" onclick="bgaApp.closeModal('automationModal')">
+                設定を保存
+              </button>
+              <button class="btn-secondary" onclick="bgaApp.closeModal('automationModal')">
+                キャンセル
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+    } catch (error) {
+      console.error('Error loading automation settings:', error);
+      this.showNotification('設定の読み込みに失敗しました', 'error');
+    }
+  }
+
+  // 通知読み込み
+  async loadNotifications() {
+    try {
+      const response = await axios.get(`${this.apiBase}/notifications`);
+      if (response.data.success && response.data.data.length > 0) {
+        const notifications = response.data.data;
+        const unreadCount = notifications.filter(n => !n.is_read).length;
+        
+        if (unreadCount > 0) {
+          this.showNotification(`${unreadCount}件の新しい通知があります`, 'info');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+    }
+  }
+
+  // 自動化設定更新メソッド
+  async updateAutomationStatus(scheduleId, isActive) {
+    try {
+      await axios.put(`${this.apiBase}/automation/schedules/${scheduleId}`, {
+        is_active: isActive
+      });
+      this.showNotification('設定を更新しました', 'success');
+    } catch (error) {
+      console.error('Error updating automation status:', error);
+      this.showNotification('設定の更新に失敗しました', 'error');
+    }
+  }
+
+  async updateAutomationFrequency(scheduleId, frequency) {
+    try {
+      await axios.put(`${this.apiBase}/automation/schedules/${scheduleId}`, {
+        frequency: frequency
+      });
+    } catch (error) {
+      console.error('Error updating automation frequency:', error);
+    }
+  }
+
+  async updateAutomationCount(scheduleId, count) {
+    try {
+      await axios.put(`${this.apiBase}/automation/schedules/${scheduleId}`, {
+        frequency_count: parseInt(count)
+      });
+    } catch (error) {
+      console.error('Error updating automation count:', error);
+    }
+  }
+
+  async updateAutomationTime(scheduleId, time) {
+    try {
+      await axios.put(`${this.apiBase}/automation/schedules/${scheduleId}`, {
+        schedule_time: time
+      });
+    } catch (error) {
+      console.error('Error updating automation time:', error);
+    }
+  }
+
+  // コンテンツタイプラベル取得
+  getContentTypeLabel(contentType) {
+    const labels = {
+      'seo_article': 'SEO記事',
+      'press_release': 'プレスリリース',
+      'recruitment': '採用コンテンツ',
+      'sns': 'SNSコンテンツ'
+    };
+    return labels[contentType] || contentType;
   }
 }
 

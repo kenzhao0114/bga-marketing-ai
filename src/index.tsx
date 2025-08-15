@@ -28,12 +28,16 @@ app.use('/api/*', async (c, next) => {
   const authMiddleware = new AuthMiddleware(authService);
   const contentGenerator = new ContentGenerationService(db, env.AI, env.OPENAI_API_KEY);
   const legalChecker = new LegalCheckService(db);
+  const contentAutomation = new ContentAutomationService(db, contentGenerator);
+  const contentDelivery = new ContentDeliveryService(db, contentAutomation);
   
   c.set('db', db);
   c.set('authService', authService);
   c.set('authMiddleware', authMiddleware);
   c.set('contentGenerator', contentGenerator);
   c.set('legalChecker', legalChecker);
+  c.set('contentAutomation', contentAutomation);
+  c.set('contentDelivery', contentDelivery);
   
   await next();
 });
@@ -44,6 +48,8 @@ import { AuthService } from './auth/auth';
 import { AuthMiddleware } from './auth/middleware';
 import { ContentGenerationService } from './services/content-generator';
 import { LegalCheckService } from './services/legal-checker';
+import { ContentAutomationService } from './services/content-automation';
+import { ContentDeliveryService } from './services/content-delivery';
 
 // APIエンドポイント
 app.get('/api/health', async (c) => {
@@ -241,6 +247,230 @@ app.post('/api/content/generate', async (c) => {
     return c.json({ 
       success: false, 
       error: 'Content generation failed' 
+    }, 500);
+  }
+});
+
+// 自動化設定関連API
+app.get('/api/automation/schedules', async (c) => {
+  try {
+    const token = getCookie(c, 'session_token');
+    if (!token) {
+      return c.json({ success: false, error: 'Authentication required' }, 401);
+    }
+
+    const authService = c.get('authService') as AuthService;
+    const authContext = await authService.validateSession(token);
+    if (!authContext) {
+      return c.json({ success: false, error: 'Invalid session' }, 401);
+    }
+
+    const contentAutomation = c.get('contentAutomation') as ContentAutomationService;
+    const schedules = await contentAutomation.getUserAutomationSchedules(
+      authContext.user.id, 
+      authContext.tenant.id
+    );
+
+    return c.json({
+      success: true,
+      data: schedules
+    });
+  } catch (error) {
+    console.error('Error fetching automation schedules:', error);
+    return c.json({ 
+      success: false, 
+      error: 'Failed to fetch automation schedules' 
+    }, 500);
+  }
+});
+
+app.put('/api/automation/schedules/:id', async (c) => {
+  try {
+    const token = getCookie(c, 'session_token');
+    if (!token) {
+      return c.json({ success: false, error: 'Authentication required' }, 401);
+    }
+
+    const authService = c.get('authService') as AuthService;
+    const authContext = await authService.validateSession(token);
+    if (!authContext) {
+      return c.json({ success: false, error: 'Invalid session' }, 401);
+    }
+
+    const scheduleId = parseInt(c.req.param('id'));
+    const updates = await c.req.json();
+
+    const contentAutomation = c.get('contentAutomation') as ContentAutomationService;
+    await contentAutomation.updateAutomationSchedule(scheduleId, updates);
+
+    return c.json({
+      success: true,
+      message: 'Automation schedule updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating automation schedule:', error);
+    return c.json({ 
+      success: false, 
+      error: 'Failed to update automation schedule' 
+    }, 500);
+  }
+});
+
+// 配信設定関連API
+app.get('/api/delivery/schedules', async (c) => {
+  try {
+    const token = getCookie(c, 'session_token');
+    if (!token) {
+      return c.json({ success: false, error: 'Authentication required' }, 401);
+    }
+
+    const authService = c.get('authService') as AuthService;
+    const authContext = await authService.validateSession(token);
+    if (!authContext) {
+      return c.json({ success: false, error: 'Invalid session' }, 401);
+    }
+
+    const contentDelivery = c.get('contentDelivery') as ContentDeliveryService;
+    const schedules = await contentDelivery.getUserDeliverySchedules(
+      authContext.user.id, 
+      authContext.tenant.id
+    );
+
+    return c.json({
+      success: true,
+      data: schedules
+    });
+  } catch (error) {
+    console.error('Error fetching delivery schedules:', error);
+    return c.json({ 
+      success: false, 
+      error: 'Failed to fetch delivery schedules' 
+    }, 500);
+  }
+});
+
+// ダッシュボード通知API
+app.get('/api/notifications', async (c) => {
+  try {
+    const token = getCookie(c, 'session_token');
+    if (!token) {
+      return c.json({ success: false, error: 'Authentication required' }, 401);
+    }
+
+    const authService = c.get('authService') as AuthService;
+    const authContext = await authService.validateSession(token);
+    if (!authContext) {
+      return c.json({ success: false, error: 'Invalid session' }, 401);
+    }
+
+    const contentDelivery = c.get('contentDelivery') as ContentDeliveryService;
+    const notifications = await contentDelivery.getDashboardNotifications(
+      authContext.user.id, 
+      authContext.tenant.id
+    );
+
+    return c.json({
+      success: true,
+      data: notifications
+    });
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    return c.json({ 
+      success: false, 
+      error: 'Failed to fetch notifications' 
+    }, 500);
+  }
+});
+
+// 生成されたコンテンツ取得API
+app.get('/api/content/generated', async (c) => {
+  try {
+    const token = getCookie(c, 'session_token');
+    if (!token) {
+      return c.json({ success: false, error: 'Authentication required' }, 401);
+    }
+
+    const authService = c.get('authService') as AuthService;
+    const authContext = await authService.validateSession(token);
+    if (!authContext) {
+      return c.json({ success: false, error: 'Invalid session' }, 401);
+    }
+
+    const contentAutomation = c.get('contentAutomation') as ContentAutomationService;
+    const contentItems = await contentAutomation.getPendingContentForDelivery(
+      authContext.user.id, 
+      authContext.tenant.id
+    );
+
+    return c.json({
+      success: true,
+      data: contentItems
+    });
+  } catch (error) {
+    console.error('Error fetching generated content:', error);
+    return c.json({ 
+      success: false, 
+      error: 'Failed to fetch generated content' 
+    }, 500);
+  }
+});
+
+// 手動コンテンツ生成実行API（テスト用）
+app.post('/api/automation/run-test', async (c) => {
+  try {
+    const token = getCookie(c, 'session_token');
+    if (!token) {
+      return c.json({ success: false, error: 'Authentication required' }, 401);
+    }
+
+    const authService = c.get('authService') as AuthService;
+    const authContext = await authService.validateSession(token);
+    if (!authContext) {
+      return c.json({ success: false, error: 'Invalid session' }, 401);
+    }
+
+    const contentAutomation = c.get('contentAutomation') as ContentAutomationService;
+    await contentAutomation.runAutomation();
+
+    return c.json({
+      success: true,
+      message: 'Test automation completed successfully'
+    });
+  } catch (error) {
+    console.error('Error running test automation:', error);
+    return c.json({ 
+      success: false, 
+      error: 'Failed to run test automation' 
+    }, 500);
+  }
+});
+
+// 手動配信実行API（テスト用）
+app.post('/api/delivery/run-test', async (c) => {
+  try {
+    const token = getCookie(c, 'session_token');
+    if (!token) {
+      return c.json({ success: false, error: 'Authentication required' }, 401);
+    }
+
+    const authService = c.get('authService') as AuthService;
+    const authContext = await authService.validateSession(token);
+    if (!authContext) {
+      return c.json({ success: false, error: 'Invalid session' }, 401);
+    }
+
+    const contentDelivery = c.get('contentDelivery') as ContentDeliveryService;
+    await contentDelivery.runTestDelivery(authContext.user.id, authContext.tenant.id);
+
+    return c.json({
+      success: true,
+      message: 'Test delivery completed successfully'
+    });
+  } catch (error) {
+    console.error('Error running test delivery:', error);
+    return c.json({ 
+      success: false, 
+      error: 'Failed to run test delivery' 
     }, 500);
   }
 });
