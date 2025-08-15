@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { serveStatic } from 'hono/cloudflare-workers'
+import { setCookie, getCookie } from 'hono/cookie'
 import { renderer } from './renderer'
 import { createApiRoutes } from './routes/api'
 import { Env } from './types'
@@ -68,16 +69,27 @@ app.post('/api/auth/login', async (c) => {
     }
 
     const authService = c.get('authService') as AuthService;
+    if (!authService) {
+      console.error('AuthService not initialized');
+      return c.json({ 
+        success: false, 
+        error: 'AuthService not available' 
+      }, 500);
+    }
+
+    console.log(`Login attempt: ${email} @ ${tenant_id}`);
     const authContext = await authService.authenticateUser(email, tenant_id);
     
     // セッションCookie設定
-    c.cookie('session_token', authContext.session.token_hash, {
+    setCookie(c, 'session_token', authContext.session.token_hash, {
       maxAge: 24 * 60 * 60, // 24 hours
       httpOnly: true,
-      secure: true,
-      sameSite: 'strict'
+      secure: false, // ローカル開発用
+      sameSite: 'Lax'
     });
 
+    console.log(`Login successful for user: ${authContext.user.id}`);
+    
     return c.json({
       success: true,
       data: {
@@ -96,11 +108,61 @@ app.post('/api/auth/login', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Login error details:', error);
     return c.json({ 
       success: false, 
-      error: 'Login failed' 
+      error: error.message || 'Login failed',
+      debug: process.env.NODE_ENV === 'development' ? error.stack : undefined
     }, 401);
+  }
+});
+
+app.get('/api/auth/profile', async (c) => {
+  try {
+    const token = getCookie(c, 'session_token');
+    
+    if (!token) {
+      return c.json({ 
+        success: false, 
+        error: 'No session token' 
+      }, 401);
+    }
+
+    const authService = c.get('authService') as AuthService;
+    const authContext = await authService.validateSession(token);
+    
+    if (!authContext) {
+      return c.json({ 
+        success: false, 
+        error: 'Invalid session' 
+      }, 401);
+    }
+
+    return c.json({
+      success: true,
+      data: {
+        user: {
+          id: authContext.user.id,
+          email: authContext.user.email,
+          name: authContext.user.name,
+          role_internal: authContext.user.role_internal,
+          role_client: authContext.user.role_client,
+          role_saas: authContext.user.role_saas
+        },
+        tenant: {
+          id: authContext.tenant.id,
+          name: authContext.tenant.name,
+          security_level: authContext.tenant.security_level
+        },
+        permissions: authContext.permissions
+      }
+    });
+  } catch (error) {
+    console.error('Profile fetch error:', error);
+    return c.json({ 
+      success: false, 
+      error: 'Failed to fetch profile' 
+    }, 500);
   }
 });
 
@@ -124,6 +186,61 @@ app.get('/api/templates', async (c) => {
     return c.json({ 
       success: false, 
       error: 'Failed to fetch templates' 
+    }, 500);
+  }
+});
+
+app.post('/api/content/generate', async (c) => {
+  try {
+    const token = getCookie(c, 'session_token');
+    
+    if (!token) {
+      return c.json({ 
+        success: false, 
+        error: 'Authentication required' 
+      }, 401);
+    }
+
+    const authService = c.get('authService') as AuthService;
+    const authContext = await authService.validateSession(token);
+    
+    if (!authContext) {
+      return c.json({ 
+        success: false, 
+        error: 'Invalid session' 
+      }, 401);
+    }
+
+    const { prompt, industry_id, growth_stage_id, channel_id } = await c.req.json();
+    
+    if (!prompt) {
+      return c.json({ 
+        success: false, 
+        error: 'Prompt is required' 
+      }, 400);
+    }
+
+    const contentGenerator = c.get('contentGenerator') as ContentGenerationService;
+    const result = await contentGenerator.generateContent(
+      authContext.tenant.id,
+      authContext.user.id,
+      { prompt, industry_id, growth_stage_id, channel_id }
+    );
+
+    // 法令チェック実行（非同期）
+    const legalChecker = c.get('legalChecker') as LegalCheckService;
+    legalChecker.checkContent(result.id, result.generated_content)
+      .catch(error => console.error('Legal check error:', error));
+
+    return c.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Content generation error:', error);
+    return c.json({ 
+      success: false, 
+      error: 'Content generation failed' 
     }, 500);
   }
 });
