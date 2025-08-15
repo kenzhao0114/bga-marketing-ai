@@ -18,7 +18,7 @@ export const renderer = jsxRenderer(({ children }) => {
         {/* カスタムCSS */}
         <link href="/static/styles.css" rel="stylesheet" />
       </head>
-      <body className="antialiased">
+      <body className="antialiased" style="background: var(--bg-primary); color: var(--text-primary);">
         {children}
         
         {/* JavaScript ライブラリ */}

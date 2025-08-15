@@ -251,22 +251,22 @@ app.use(renderer)
 // メインページ
 app.get('/', (c) => {
   return c.render(
-    <div className="min-h-screen bg-gray-50">
+    <div className="mesh-background cyber-scrollbar">
       {/* ヘッダー */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <div className="text-2xl font-bold text-blue-600">
-                <i className="fas fa-robot mr-2"></i>
+      <header className="glass-morphism border-b border-glass">
+        <div className="cyber-container">
+          <div className="cyber-flex-between h-20">
+            <div className="cyber-flex">
+              <div className="text-3xl font-bold cyber-text-gradient">
+                <i className="fas fa-robot mr-3"></i>
                 BGA Marketing AI
               </div>
-              <span className="px-3 py-1 text-xs font-semibold text-blue-700 bg-blue-100 rounded-full">
+              <span className="cyber-badge neon-pulse">
                 Phase 0 MVP
               </span>
             </div>
-            <div className="flex items-center space-x-4">
-              <button id="loginBtn" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            <div className="cyber-flex">
+              <button id="loginBtn" className="cyber-btn-primary cyber-btn-lg">
                 <i className="fas fa-sign-in-alt mr-2"></i>
                 ログイン
               </button>
@@ -276,107 +276,109 @@ app.get('/', (c) => {
       </header>
 
       {/* メインコンテンツ */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="cyber-container py-16">
         {/* ヒーローセクション */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-20 fade-in">
+          <h1 className="text-6xl font-bold cyber-text-gradient mb-6 scan-lines">
             生成AI活用 B2Bデジタルマーケティング自動化
           </h1>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-2xl text-secondary mb-12 neural-network">
             「誰でも90秒で効果把握」「3クリックで実施」× 法令チェックの新体験
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="text-3xl text-green-600 mb-3">⚡</div>
-              <h3 className="text-lg font-semibold mb-2">生産性向上</h3>
-              <p className="text-gray-600">マーケティング業務工数を最大70%削減</p>
+          <div className="cyber-grid-3 max-w-6xl mx-auto">
+            <div className="cyber-card hologram-effect float">
+              <div className="text-5xl mb-4" style={{color: 'var(--success-color)'}}>⚡</div>
+              <h3 className="text-xl font-bold mb-3" style={{color: 'var(--text-primary)'}}>生産性向上</h3>
+              <p style={{color: 'var(--text-secondary)'}}>マーケティング業務工数を最大70%削減</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="text-3xl text-red-600 mb-3">🛡️</div>
-              <h3 className="text-lg font-semibold mb-2">リスク軽減</h3>
-              <p className="text-gray-600">景表法・薬機法等の法令違反を自動検知</p>
+            <div className="cyber-card hologram-effect float" style={{'animationDelay': '0.2s'}}>
+              <div className="text-5xl mb-4" style={{color: 'var(--danger-color)'}}>🛡️</div>
+              <h3 className="text-xl font-bold mb-3" style={{color: 'var(--text-primary)'}}>リスク軽減</h3>
+              <p style={{color: 'var(--text-secondary)'}}>景表法・薬機法等の法令違反を自動検知</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="text-3xl text-blue-600 mb-3">📈</div>
-              <h3 className="text-lg font-semibold mb-2">ROI向上</h3>
-              <p className="text-gray-600">データ駆動によるマーケティング効果最大化</p>
+            <div className="cyber-card hologram-effect float" style={{'animationDelay': '0.4s'}}>
+              <div className="text-5xl mb-4" style={{color: 'var(--primary-color)'}}>📈</div>
+              <h3 className="text-xl font-bold mb-3" style={{color: 'var(--text-primary)'}}>ROI向上</h3>
+              <p style={{color: 'var(--text-secondary)'}}>データ駆動によるマーケティング効果最大化</p>
             </div>
           </div>
         </div>
 
         {/* 機能紹介 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <div className="cyber-grid-2 mb-20 slide-in">
           {/* コンテンツ生成 */}
-          <div className="bg-white p-8 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              <i className="fas fa-magic mr-3 text-purple-600"></i>
+          <div className="cyber-card neural-network neon-border">
+            <h2 className="text-3xl font-bold mb-6" style={{color: 'var(--text-primary)'}}>
+              <i className="fas fa-magic mr-4 cyber-glow" style={{color: 'var(--secondary-color)'}}></i>
               AIコンテンツ生成
             </h2>
-            <ul className="space-y-3 text-gray-600">
-              <li className="flex items-center">
-                <i className="fas fa-check text-green-500 mr-3"></i>
+            <ul className="space-y-4 mb-8" style={{color: 'var(--text-secondary)'}}>
+              <li className="cyber-flex">
+                <i className="fas fa-check cyber-glow mr-4" style={{color: 'var(--success-color)'}}></i>
                 5業界 × 3成長ステージ × 4チャネル対応
               </li>
-              <li className="flex items-center">
-                <i className="fas fa-check text-green-500 mr-3"></i>
+              <li className="cyber-flex">
+                <i className="fas fa-check cyber-glow mr-4" style={{color: 'var(--success-color)'}}></i>
                 日本特化LocalePack搭載
               </li>
-              <li className="flex items-center">
-                <i className="fas fa-check text-green-500 mr-3"></i>
+              <li className="cyber-flex">
+                <i className="fas fa-check cyber-glow mr-4" style={{color: 'var(--success-color)'}}></i>
                 季節性・文化的文脈を自動考慮
               </li>
             </ul>
-            <button id="generateBtn" className="mt-6 w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition-colors">
+            <button id="generateBtn" className="cyber-btn cyber-btn-lg w-full" style={{background: 'var(--gradient-accent)'}}>
+              <i className="fas fa-bolt mr-2"></i>
               コンテンツ生成を試す
             </button>
           </div>
 
           {/* 法令チェック */}
-          <div className="bg-white p-8 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              <i className="fas fa-shield-alt mr-3 text-red-600"></i>
+          <div className="cyber-card neural-network neon-border">
+            <h2 className="text-3xl font-bold mb-6" style={{color: 'var(--text-primary)'}}>
+              <i className="fas fa-shield-alt mr-4 cyber-glow" style={{color: 'var(--danger-color)'}}></i>
               法令チェック
             </h2>
-            <ul className="space-y-3 text-gray-600">
-              <li className="flex items-center">
-                <i className="fas fa-check text-green-500 mr-3"></i>
+            <ul className="space-y-4 mb-8" style={{color: 'var(--text-secondary)'}}>
+              <li className="cyber-flex">
+                <i className="fas fa-check cyber-glow mr-4" style={{color: 'var(--success-color)'}}></i>
                 景表法・薬機法・金商法対応
               </li>
-              <li className="flex items-center">
-                <i className="fas fa-check text-green-500 mr-3"></i>
+              <li className="cyber-flex">
+                <i className="fas fa-check cyber-glow mr-4" style={{color: 'var(--success-color)'}}></i>
                 5段階リスクレベル評価
               </li>
-              <li className="flex items-center">
-                <i className="fas fa-check text-green-500 mr-3"></i>
+              <li className="cyber-flex">
+                <i className="fas fa-check cyber-glow mr-4" style={{color: 'var(--success-color)'}}></i>
                 修正提案と法的根拠の提示
               </li>
             </ul>
-            <button id="checkBtn" className="mt-6 w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition-colors">
+            <button id="checkBtn" className="cyber-btn-danger cyber-btn-lg w-full">
+              <i className="fas fa-search mr-2"></i>
               法令チェックを実行
             </button>
           </div>
         </div>
 
         {/* 統計情報 */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8 rounded-lg mb-12">
+        <div className="cyber-card matrix-rain data-stream mb-20" style={{background: 'var(--gradient-primary)'}}>
           <div className="text-center">
-            <h2 className="text-2xl font-bold mb-6">Phase 0 社内MVP統計</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div>
-                <div className="text-3xl font-bold">70%</div>
-                <div className="text-sm opacity-90">業務工数削減</div>
+            <h2 className="text-4xl font-bold mb-10" style={{color: 'var(--text-primary)'}}>フェーズ0 社内MVP統計</h2>
+            <div className="cyber-grid-4">
+              <div className="text-center">
+                <div className="text-6xl font-bold cyber-text-gradient mb-2">70%</div>
+                <div className="text-lg" style={{color: 'var(--text-secondary)'}}>業務工数削減</div>
               </div>
-              <div>
-                <div className="text-3xl font-bold">90秒</div>
-                <div className="text-sm opacity-90">効果把握時間</div>
+              <div className="text-center">
+                <div className="text-6xl font-bold cyber-text-gradient mb-2">90秒</div>
+                <div className="text-lg" style={{color: 'var(--text-secondary)'}}>効果把握時間</div>
               </div>
-              <div>
-                <div className="text-3xl font-bold">3クリック</div>
-                <div className="text-sm opacity-90">実施までの操作</div>
+              <div className="text-center">
+                <div className="text-6xl font-bold cyber-text-gradient mb-2">3クリック</div>
+                <div className="text-lg" style={{color: 'var(--text-secondary)'}}>実施までの操作</div>
               </div>
-              <div>
-                <div className="text-3xl font-bold">0件</div>
-                <div className="text-sm opacity-90">法令違反発生</div>
+              <div className="text-center">
+                <div className="text-6xl font-bold cyber-text-gradient mb-2">0件</div>
+                <div className="text-lg" style={{color: 'var(--text-secondary)'}}>法令違反発生</div>
               </div>
             </div>
           </div>
@@ -384,8 +386,8 @@ app.get('/', (c) => {
 
         {/* ダッシュボード（認証後表示） */}
         <div id="dashboard" className="hidden">
-          <div className="bg-white p-8 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">マーケティング ダッシュボード</h2>
+          <div className="cyber-card neural-network">
+            <h2 className="text-3xl font-bold mb-8 cyber-text-gradient">マーケティング ダッシュボード</h2>
             <div id="dashboardContent">
               {/* JavaScript で動的に生成 */}
             </div>
@@ -393,11 +395,13 @@ app.get('/', (c) => {
         </div>
       </main>
 
+      <div className="cyber-divider"></div>
+
       {/* フッター */}
-      <footer className="bg-gray-800 text-white py-8 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p>&copy; 2025 BGA株式会社 & Apoptosis株式会社. All rights reserved.</p>
-          <p className="text-gray-400 mt-2">生成AI活用 B2Bデジタルマーケティング自動化SaaS - Phase 0 MVP</p>
+      <footer className="glass-morphism py-12">
+        <div className="cyber-container text-center">
+          <p style={{color: 'var(--text-secondary)'}}>&copy; 2025 BGA株式会社 & Apoptosis株式会社. All rights reserved.</p>
+          <p className="mt-2 cyber-text-gradient">生成AI活用 B2Bデジタルマーケティング自動化SaaS - Phase 0 MVP</p>
         </div>
       </footer>
     </div>
